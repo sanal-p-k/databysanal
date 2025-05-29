@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 // Get Supabase credentials from environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// if (!supabaseUrl || !supabaseAnonKey) {
+//   console.error('Supabase credentials missing!');
+// } else {
+//   console.log('Using Supabase key (start):', supabaseAnonKey.slice(0, 10));
+// }
+
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase credentials not found in environment variables');
@@ -10,15 +16,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Log the URL (without sensitive info)
-console.log('Initializing Supabase with URL:', supabaseUrl);
+// console.log('Initializing Supabase with URL:', supabaseUrl);
+
+// console.log('Supabase URL:', supabaseUrl);
+// console.log('Supabase anon key:', supabaseAnonKey?.slice(0, 10));
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
-  }
+    detectSessionInUrl: false,
+  },
 });
 
 // Test the connection immediately

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -20,7 +21,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     // Validate inputs
     if (!email || !password) {
       setError('Please enter both email and password');
@@ -30,7 +31,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     try {
       // Clear any existing errors
       setError('');
-      
+
       // Show loading state
       const loadingElement = document.createElement('div');
       loadingElement.className = 'fixed inset-0 bg-black bg-opacity-25 flex items-center justify-center z-50';
@@ -43,7 +44,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       document.body.appendChild(loadingElement);
 
       await signIn(email, password);
-      
+
       // Remove loading state
       loadingElement.remove();
       onClose();
@@ -81,7 +82,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md">
             {error}
@@ -128,7 +129,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
-            <a href="/templates/signup" className="font-medium text-primary hover:text-primary-hover">
+            <a style={{cursor:'pointer'}} onClick={() => {
+              const provider = new GoogleAuthProvider();
+              signInWithPopup(auth, provider).catch((error) =>
+                console.error('Google sign in error:', error)
+              );
+            }} className="font-medium text-primary hover:text-primary-hover">
               Sign Up
             </a>
           </p>

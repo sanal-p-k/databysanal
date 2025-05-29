@@ -166,8 +166,9 @@ export default function TemplatesPage() {
                   ))}
                 </div>
                 <TemplateDownload
+                  templateId={template.id}
                   templateName={template.name}
-                  filePath={`Templates/${template.name}.pptx`}
+                  filePath="WTD_MinimalisticGreen.pptx"
                   onError={(error) => console.error(`Error downloading ${template.name}:`, error)}
                 />
               </div>

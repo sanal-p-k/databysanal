@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
-}
+  images: {
+    unoptimized: true, // Use this if you're serving images from /public
+  },
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

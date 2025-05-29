@@ -1,17 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStorage } from '../context/StorageContext';
 import { motion } from 'framer-motion';
+import { collection, addDoc } from 'firebase/firestore';
+// import { db } from '@/lib/firebase';
+import { supabase } from '@/lib/supabase';
+
 
 interface TemplateDownloadProps {
+  templateId: number;
   templateName: string;
   filePath: string;
   onError?: (error: Error) => void;
 }
 
 export default function TemplateDownload({
+  templateId,
   templateName,
   filePath,
   onError,
@@ -28,6 +34,27 @@ export default function TemplateDownload({
     industry: '',
     agreeToTerms: false,
   });
+
+  // useEffect(() => {
+  //   const listFilesInBucket = async () => {
+  //     const { data, error } = await supabase.storage.from('templates').list('', {
+  //       limit: 100,
+  //       offset: 0,
+  //     });
+  //     console.log('Files in templates bucket root:', data);
+
+
+  //     if (error) {
+  //       console.error('Error listing files:', error.message);
+  //       return;
+  //     }
+
+  //     console.log('Files in templates/Templates folder:', data);
+  //   };
+
+  //   listFilesInBucket(); // call on component mount
+  // }, []);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -56,12 +83,41 @@ export default function TemplateDownload({
         throw new Error('Template file path is required');
       }
 
-      // You could store the formData here in Supabase if needed
+      // console.log('formData:', formData);
 
-      // Redirect to dashboard_template (can pass query if needed)
-      router.push('/dashboard_template');
+      // Map formData keys to match your DB column names exactly
+      const insertData = {
+        template_id: templateId,
+        template_name: templateName,
+        name: formData.name,
+        email: formData.email,
+        companyname: formData.companyName,   // lowercase key expected by DB
+        industry: formData.industry,
+        agreetoterms: formData.agreeToTerms, // lowercase key expected by DB
+        created_at: new Date().toISOString(),
+      };
+
+      // 1. Save form data to Supabase
+      const { error } = await supabase.from('template_downloads').insert([insertData]);
+
+      if (error) {
+        throw error;
+      }
+
+      // 2. Get signed URL using the internal file path
+      const signedUrl = await getTemplateSignedUrl(filePath);
+      if (!signedUrl) throw new Error("Failed to get file link");
+
+      // 3. Trigger file download
+      const link = document.createElement('a');
+      link.href = signedUrl;
+      link.download = templateName + '.pptx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Something went wrong');
+      const error = err instanceof Error ? err : new Error("Something went wrong");
       setError(error.message);
       console.error(error);
       if (onError) onError(error);
@@ -69,6 +125,7 @@ export default function TemplateDownload({
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <motion.div
@@ -169,7 +226,13 @@ export default function TemplateDownload({
 
         <button
           type="submit"
-          disabled={isSubmitting || !formData.agreeToTerms}
+          disabled={
+            isSubmitting ||
+            !formData.agreeToTerms ||
+            !formData.name.trim() ||
+            !formData.email.trim() ||
+            !formData.industry.trim()
+          }
           className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Submitting...' : 'Download Template'}
