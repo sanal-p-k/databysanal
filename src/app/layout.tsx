@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import AuthProviderWrapper from "../components/AuthProviderWrapper";
 import { StorageProvider } from "../context/StorageContext";
+import { metadata as siteMetadata } from "./metadata";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -12,30 +13,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Power BI Templates - Premium Dashboard Solutions",
-  description: "Get premium Power BI dashboard templates to transform your data visualization. Modern, customizable templates for business analytics.",
-  keywords: "Power BI, templates, dashboard, data visualization, business analytics",
-  authors: [{ name: "Sanal" }],
-  creator: "Sanal",
-  publisher: "Sanal",
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://yourwebsite.com',
-    title: 'Power BI Templates - Premium Dashboard Solutions',
-    description: 'Get premium Power BI dashboard templates to transform your data visualization.',
-    siteName: 'Power BI Templates',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Power BI Templates - Premium Dashboard Solutions',
-    description: 'Get premium Power BI dashboard templates to transform your data visualization.',
-  },
-  icons: {
-    icon: '/favicon.ico',
-  },
-};
+export const metadata: Metadata = siteMetadata;
 
 export default function RootLayout({
   children,

@@ -8,9 +8,8 @@ import Image from "next/image";
 const templates = [
   {
     id: 1,
-    name: "Sales Dashboard",
-    description: "Track your sales performance with real-time analytics",
-    price: "$49",
+    name: "Minimalist Green",
+    price: "Free",
     image: "/templates/sales-dashboard.jpg",
     category: "Business",
     features: [
