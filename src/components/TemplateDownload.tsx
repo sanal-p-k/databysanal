@@ -1,32 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStorage } from '../context/StorageContext';
 import { motion } from 'framer-motion';
-import { collection, addDoc } from 'firebase/firestore';
-// import { db } from '@/lib/firebase';
-import { supabase } from '@/lib/supabase';
-
 
 interface TemplateDownloadProps {
-  templateId: number;
-  templateName: string;
-  filePath: string;
-  onError?: (error: Error) => void;
+  template: {
+    id: string;
+    name: string;
+    description: string;
+    price: string;
+    image: string;
+  };
 }
 
-export default function TemplateDownload({
-  templateId,
-  templateName,
-  filePath,
-  onError,
-}: TemplateDownloadProps) {
-  const { getTemplateSignedUrl } = useStorage();
+export default function TemplateDownload({ template }: TemplateDownloadProps) {
   const router = useRouter();
+  const { getTemplateSignedUrl } = useStorage();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,209 +27,190 @@ export default function TemplateDownload({
     agreeToTerms: false,
   });
 
-  // useEffect(() => {
-  //   const listFilesInBucket = async () => {
-  //     const { data, error } = await supabase.storage.from('templates').list('', {
-  //       limit: 100,
-  //       offset: 0,
-  //     });
-  //     console.log('Files in templates bucket root:', data);
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-
-  //     if (error) {
-  //       console.error('Error listing files:', error.message);
-  //       return;
-  //     }
-
-  //     console.log('Files in templates/Templates folder:', data);
-  //   };
-
-  //   listFilesInBucket(); // call on component mount
-  // }, []);
-
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement;
+    const { name, value, type } = target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? target.checked : value
+    }));
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, agreeToTerms: e.target.checked }));
+  const handleDownloadClick = () => {
+    setIsFormExpanded(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
-
-    if (!formData.agreeToTerms) {
-      setError('Please agree to terms and conditions');
-      setIsSubmitting(false);
-      return;
-    }
+    setError('');
 
     try {
-      if (!filePath || !filePath.trim()) {
-        throw new Error('Template file path is required');
-      }
-
-      // console.log('formData:', formData);
-
-      // Map formData keys to match your DB column names exactly
-      const insertData = {
-        template_id: templateId,
-        template_name: templateName,
-        name: formData.name,
-        email: formData.email,
-        companyname: formData.companyName,   // lowercase key expected by DB
-        industry: formData.industry,
-        agreetoterms: formData.agreeToTerms, // lowercase key expected by DB
-        created_at: new Date().toISOString(),
-      };
-
-      // 1. Save form data to Supabase
-      const { error } = await supabase.from('template_downloads').insert([insertData]);
-
-      if (error) {
-        throw error;
-      }
-
-      // 2. Get signed URL using the internal file path
-      const signedUrl = await getTemplateSignedUrl(filePath);
-      if (!signedUrl) throw new Error("Failed to get file link");
-
-      // 3. Trigger file download
+      const signedUrl = await getTemplateSignedUrl(template.name);
       const link = document.createElement('a');
       link.href = signedUrl;
-      link.download = templateName + '.pptx';
+      link.download = template.name;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
+      setFormData({
+        name: '',
+        email: '',
+        companyName: '',
+        industry: '',
+        agreeToTerms: false,
+      });
+      setIsFormExpanded(false);
+      router.push('/templates');
     } catch (err) {
-      const error = err instanceof Error ? err : new Error("Something went wrong");
-      setError(error.message);
-      console.error(error);
-      if (onError) onError(error);
+      console.error('Download error:', err);
+      setError('Failed to download template. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-lg shadow-lg p-6"
+      transition={{ duration: 0.6 }}
+      className="max-w-7xl mx-auto p-6 md:p-10"
     >
-      <h3 className="text-xl font-semibold mb-4">Download Template</h3>
+      <div className="grid md:grid-cols-3 gap-8">
 
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4"
-        >
-          {error}
-        </motion.div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Your Name
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            required
+        {/* Section 1: Template Image */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-4 flex justify-center items-center">
+          <img
+            src={template.image}
+            alt={template.name}
+            className="rounded-xl w-full h-auto object-contain max-h-96"
           />
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            required
-          />
+        {/* Section 2: Description */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{template.name}</h2>
+            <p className="text-gray-700 text-sm leading-relaxed">{template.description}</p>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="companyName" className="block text-sm font-medium text-gray-700 mb-2">
-            Company Name
-          </label>
-          <input
-            type="text"
-            id="companyName"
-            name="companyName"
-            value={formData.companyName}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-          />
-        </div>
+        {/* Section 3: How to Use + Download */}
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">How to Use</h3>
+          <ul className="list-disc list-inside text-gray-700 text-sm mb-6 space-y-1">
+            <li>Fill the form below.</li>
+            <li>Agree to terms & click “Download”.</li>
+            <li>Open in Excel or Google Sheets.</li>
+            <li>Customize as per your needs.</li>
+          </ul>
 
-        <div>
-          <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-2">
-            Industry
-          </label>
-          <select
-            id="industry"
-            name="industry"
-            value={formData.industry}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-          >
-            <option value="">Select Industry</option>
-            <option value="finance">Finance</option>
-            <option value="marketing">Marketing</option>
-            <option value="hr">HR</option>
-            <option value="supply-chain">Supply Chain</option>
-            <option value="other">Other</option>
-          </select>
+          {!isFormExpanded ? (
+            <div
+              onClick={handleDownloadClick}
+              className="cursor-pointer relative rounded-xl overflow-hidden group hover:scale-[1.02] transition-all duration-300 shadow-md"
+            >
+              <div className="h-40 bg-[url('/images/download-bg.png')] bg-cover bg-center flex items-end">
+                <div className="bg-black bg-opacity-60 w-full p-4">
+                  <div className="flex items-center gap-2 text-white font-medium text-lg">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v8m0 0l-3-3m3 3l3-3M12 4v8"
+                      />
+                    </svg>
+                    Download
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleFormSubmit} className="space-y-4 mt-4">
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Your Name"
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Your Email"
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              />
+              <input
+                type="text"
+                name="companyName"
+                value={formData.companyName}
+                onChange={handleInputChange}
+                placeholder="Company Name"
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              />
+              <select
+                name="industry"
+                value={formData.industry}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Select Industry</option>
+                <option value="finance">Finance</option>
+                <option value="marketing">Marketing</option>
+                <option value="hr">HR</option>
+                <option value="supply-chain">Supply Chain</option>
+                <option value="other">Other</option>
+              </select>
+              <div className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                />
+                <label>
+                  I agree to the{' '}
+                  <a href="#" className="text-primary underline">terms and conditions</a>
+                </label>
+              </div>
+              {error && <p className="text-red-600 text-sm">{error}</p>}
+              <button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  !formData.agreeToTerms ||
+                  !formData.name.trim() ||
+                  !formData.email.trim() ||
+                  !formData.industry.trim()
+                }
+                className="w-full py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Submitting...' : 'Download Now'}
+              </button>
+            </form>
+          )}
         </div>
-
-        <div className="flex items-center">
-          <input
-            id="terms"
-            name="agreeToTerms"
-            type="checkbox"
-            checked={formData.agreeToTerms}
-            onChange={handleCheckboxChange}
-            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
-          />
-          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-            I agree to the terms and conditions
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={
-            isSubmitting ||
-            !formData.agreeToTerms ||
-            !formData.name.trim() ||
-            !formData.email.trim() ||
-            !formData.industry.trim()
-          }
-          className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? 'Submitting...' : 'Download Template'}
-        </button>
-      </form>
+      </div>
     </motion.div>
   );
 }

@@ -3,6 +3,10 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut as firebaseSignOut, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { User } from 'firebase/auth';
+
+interface FirebaseUser extends User {
+  id?: string;
+}
 import { auth } from '../lib/firebase';
 
 interface AuthContextType {
