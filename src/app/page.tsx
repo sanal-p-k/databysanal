@@ -1,19 +1,21 @@
 'use client';
 
 import { motion } from "framer-motion";
+import Link from 'next/link';
 
 const glassMorphism = 'bg-white/5 backdrop-blur-sm border border-white/10';
 const hoverEffect = 'hover:shadow-lg hover:shadow-cyan-500/20 transition-shadow duration-300';
 
 // Testimonials from your actual projects
-const testimonials = [
+export const testimonials = [
   {
     name: 'Lean IT Team',
     title: 'Internal Ops Team',
     testimonial: 'We just needed something fast and simple. Sanal’s AppSheet app became our daily control center. No fluff, no dashboards – just what we needed.',
     benefits: ['70% less communication lag', 'No training needed', 'Full mobile access'],
     avatar: 'IT',
-    avatarColor: 'text-blue-400'
+    avatarColor: 'text-blue-400',
+    image: '/images/case-studies/lean-it-team.jpg'
   },
   {
     name: 'Staffspectrum',
@@ -21,7 +23,8 @@ const testimonials = [
     testimonial: 'Sanal created a Power BI dashboard that helped us track performance and spot trends fast. His work in analysis, DB design, and reporting had real impact.',
     benefits: ['Live performance dashboards', 'Improved decision-making', 'Clear data insights'],
     avatar: 'SS',
-    avatarColor: 'text-purple-400'
+    avatarColor: 'text-purple-400',
+    image: '/images/case-studies/staffspectrum.jpg'
   }
 ];
 
@@ -85,7 +88,7 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-5xl md:text-7xl font-bold text-white mb-6"
           >
-            Real-World Business Automation
+            I Turn Data into Decisions.
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -93,28 +96,31 @@ export default function Home() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto mb-12"
           >
-            We build Power Apps, AppSheet apps, and Power BI dashboards that actually solve your team’s bottlenecks – faster workflows, smarter hiring, and zero-code control.
-          </motion.p>
+            Hi, I'm Sanal - I use Power BI, AppSheet, and Power Apps to solve real business problems with automation, insights, and smarter workflows.          </motion.p>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.6 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center rounded-full border border-transparent bg-gradient-to-r from-cyan-500 to-blue-500 px-8 py-4 text-base font-medium text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-300"
-            >
-              Book a Demo
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center rounded-full border-2 border-white/30 px-8 py-4 text-base font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-300"
-            >
-              See Case Studies
-            </motion.button>
+            <Link href="https://www.youtube.com/@databysanal/">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center rounded-full border border-transparent bg-gradient-to-r from-cyan-500 to-blue-500 px-8 py-4 text-base font-medium text-white shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-300"
+              >
+                YouTube
+              </motion.button>
+            </Link>
+            <Link href="/case-studies">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-flex items-center rounded-full border-2 border-white/30 px-8 py-4 text-base font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 transition-all duration-300"
+              >
+                See Case Studies
+              </motion.button>
+            </Link>
           </motion.div>
         </div>
       </motion.div>

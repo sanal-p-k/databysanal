@@ -116,7 +116,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/faq"
+                  href="/case-studies"
                   className="text-gray-600 hover:text-blue-900 transition-colors"
                 >
                   FAQ
@@ -135,7 +135,7 @@ export default function Footer() {
               <li className="slide-in">
                 <div className="flex items-center">
                   <FiPhone className="w-5 h-5 text-gray-500" />
-                  <span className="text-base text-gray-400 ml-3">+ 9497684728</span>
+                  <span className="text-base text-gray-400 ml-3">+91 9497684728</span>
                 </div>
               </li>
               <li className="slide-in">
