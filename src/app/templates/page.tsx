@@ -7,12 +7,12 @@ import Link from 'next/link';
 const templates = [
   {
     id: 1,
-    name: "Shooting Start Day & Night",
-    description: "Download the full editable design in pptx, pbix, and Power BI Theme (.json) — Light and Dark Mode included!",
-    image: "/templates/screenshots/shooting-star.png",
-    price: "$39",
-    originalPrice: "$54",
-    specialOffer: true
+    name: "Minimalist Green",
+    description: "Download the full editable design in pptx",
+    image: "/templates/screenshots/minimalist_green.png",
+    price: "Free",
+    originalPrice: "",
+    specialOffer: false
   },
   {
     id: 2,
