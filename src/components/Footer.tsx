@@ -172,7 +172,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-12 border-t border-white/10">
           <p className="text-base text-gray-400 text-center slide-up">
-            &copy; {new Date().getFullYear()} PowerBI Templates. All rights reserved.
+            &copy; {new Date().getFullYear()} Data By Sanal. All rights reserved.
           </p>
         </div>
       </div>

@@ -15,14 +15,14 @@ export default function DownloadPage() {
   const router = useRouter();
   const { user } = useAuth();
 
+
+
   const templateId = searchParams.get('templateId') ?? '';
 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     industry: '',
-    companyName: '',
-    phoneNumber: '',
   });
 
   const [isFormExpanded, setIsFormExpanded] = useState(false);
@@ -44,8 +44,15 @@ export default function DownloadPage() {
 
     try {
       const supabase = createClientComponentClient<Database>();
-      
-      // Save user details to database
+
+      // List files in the 'templates' bucket to debug
+      const { data: files, error: listError } = await supabase.storage.from('templates').list('');
+      console.log('Files in bucket:', files);
+      if (listError) {
+        console.error('Error listing files:', listError);
+      }
+
+      // Then continue with your insert & download logic
       const { data: userData, error: userError } = await supabase
         .from('template_downloads')
         .insert([
@@ -53,7 +60,7 @@ export default function DownloadPage() {
             template_id: parseInt(templateId),
             name: formData.name,
             email: formData.email,
-            user_id: user?.uid, // Using Firebase user ID
+            user_id: user?.uid,
           }
         ])
         .select()
@@ -61,20 +68,20 @@ export default function DownloadPage() {
 
       if (userError) throw userError;
 
-      // Get the file from Supabase Storage
+      // Download the file
       const { data: fileData, error: fileError } = await supabase
         .storage
         .from('templates')
-        .download(`template-${templateId}.pbix`);
+        .download(`WTD_MinimalisticGreen.pptx`);
 
       if (fileError) throw fileError;
 
-      // Create a blob from the file data
+      // Create blob and trigger download
       const blob = new Blob([fileData], { type: 'application/octet-stream' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `template-${templateId}.pbix`;
+      a.download = `WTD_MinimalisticGreen.pptx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -93,24 +100,9 @@ export default function DownloadPage() {
       setIsSubmitting(false);
     }
   };
+  const isFormValid = formData.name.trim() !== '' && formData.email.trim() !== '' && formData.industry.trim() !== '';
 
-  if (!user) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        <section className="text-center bg-white p-8 rounded-lg shadow-md max-w-md">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
-            Please sign in to download templates.
-          </h1>
-          <Link
-            href="/templates/dashboard"
-            className="inline-block bg-primary text-white px-6 py-3 rounded-md text-lg font-medium hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 transition"
-          >
-            Sign In
-          </Link>
-        </section>
-      </main>
-    );
-  }
+
 
   if (success) {
     return (
@@ -358,6 +350,7 @@ export default function DownloadPage() {
                         placeholder={placeholder}
                         className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm placeholder-gray-400 focus:border-primary focus:ring-1 focus:ring-primary sm:text-sm transition"
                         autoComplete={name === 'email' ? 'email' : 'off'}
+
                       />
                     </div>
                   ))}
@@ -384,8 +377,12 @@ export default function DownloadPage() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3 px-6 bg-primary text-white font-medium rounded-lg hover:bg-primary-hover transition-all duration-300 shadow mt-4"
+                    disabled={isSubmitting || !isFormValid}
+                    className={`w-full py-3 px-6 font-medium rounded-lg transition-all duration-300 shadow mt-4
+    ${isSubmitting || !isFormValid
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-primary text-white hover:bg-primary-hover'}
+  `}
                   >
                     {isSubmitting ? (
                       <>
@@ -416,6 +413,7 @@ export default function DownloadPage() {
                       'Download Now'
                     )}
                   </button>
+
                 </form>
               </div>
             </div>
